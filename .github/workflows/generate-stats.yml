@@ -1,0 +1,38 @@
+name: Generate GitHub Stats
+
+on:
+  schedule:
+    # 每天国际时间0点运行一次（北京时间早上8点），你可以修改这个时间
+    - cron: "0 0 * * *"
+  workflow_dispatch: # 允许你手动触发更新
+  push:
+    branches:
+      - main # 如果你推送到 main 分支也会触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Stats Card
+        uses: readme-tools/github-readme-stats-action@v1
+        with:
+          card: stats
+          options: username=${{ github.repository_owner }}&show_icons=true&theme=default
+          path: profile/stats.svg
+
+      - name: Generate Top Languages Card
+        uses: readme-tools/github-readme-stats-action@v1
+        with:
+          card: top-langs
+          options: username=${{ github.repository_owner }}&layout=compact
+          path: profile/top-langs.svg
+
+      - name: Commit the generated SVGs
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add profile/*.svg
+          git commit -m "Auto-update GitHub stats" || exit 0
+          git push
